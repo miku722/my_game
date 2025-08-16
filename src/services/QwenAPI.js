@@ -1,7 +1,7 @@
 export class QwenAPIService {
   constructor() {
-    this.apiUrl = import.meta.env.VITE_CLAUDE_API_URL || 'https://api.anthropic.com/v1/messages';
-    this.model = import.meta.env.VITE_CLAUDE_MODEL || 'claude-sonnet-4-20250514';
+    this.apiUrl = '/api';
+    this.model = import.meta.env.VITE_CLAUDE_MODEL || 'qwen-plus';
   }
 
   async sendMessage(prompt, maxTokens = 1500) {
@@ -26,7 +26,7 @@ export class QwenAPIService {
       }
 
       const data = await response.json();
-      let responseText = data.content[0].text;
+      let responseText = data.choices[0].message.content;
       
       // 清理JSON响应
       responseText = responseText.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();

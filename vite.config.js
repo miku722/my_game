@@ -16,7 +16,15 @@ export default defineConfig({
     }
   },
   server: {
+    proxy: {
+      '/api': {
+        target: 'https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api/, ''),
+      },
+    },
     port: 3000,
     open: true
   }
 })
+
