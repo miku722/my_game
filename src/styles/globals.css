@@ -1,5 +1,7 @@
 /* Tailwind CSS 基础样式 */
-/* Removed Tailwind directives because Tailwind is not configured in the build process */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 /* 全局基础样式 */
 * {

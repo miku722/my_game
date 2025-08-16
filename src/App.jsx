@@ -1,5 +1,5 @@
 import React from 'react'
-import MuseumPortalGame from './components/game/MuseumPortalGame'
+import MuseumPortalGame from './game/MuseumPortalGame'
 import './App.css'
 
 function App() {
