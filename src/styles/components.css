@@ -1,0 +1,194 @@
+/* 游戏组件专用样式 */
+
+/* 状态栏样式 */
+.status-bar {
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  border: 1px solid #cbd5e0;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.status-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* 角色卡片样式 */
+.character-avatar {
+  width: 3rem;
+  height: 3rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+  color: white;
+  margin-bottom: 0.5rem;
+}
+
+.character-recruited {
+  background: linear-gradient(135deg, #10b981, #059669);
+  animation: pulse 2s infinite;
+}
+
+/* 场景展示样式 */
+.scene-container {
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  border: 2px solid #f59e0b;
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.scene-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #3b82f6, #8b5cf6, #ec4899, #f59e0b);
+  animation: shimmer 3s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+/* 对话气泡样式 */
+.dialogue-bubble {
+  position: relative;
+  background: #ffffff;
+  border: 2px solid #3b82f6;
+  border-radius: 1rem;
+  padding: 1rem;
+  margin: 0.5rem 0;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.dialogue-bubble::before {
+  content: '';
+  position: absolute;
+  top: 1rem;
+  left: -10px;
+  width: 0;
+  height: 0;
+  border-top: 10px solid transparent;
+  border-bottom: 10px solid transparent;
+  border-right: 10px solid #3b82f6;
+}
+
+/* 行动输入框样式 */
+.action-input {
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  border: 2px solid #cbd5e0;
+  border-radius: 0.75rem;
+  padding: 1rem;
+  transition: all 0.3s ease;
+}
+
+.action-input:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  background: #ffffff;
+}
+
+/* 危险等级指示器 */
+.danger-level-1 { color: #10b981; }
+.danger-level-2 { color: #f59e0b; }
+.danger-level-3 { color: #f97316; }
+.danger-level-4 { color: #ef4444; }
+.danger-level-5 { color: #8b5cf6; }
+
+/* 心情指示器 */
+.mood-1 { color: #ef4444; }
+.mood-2 { color: #f97316; }
+.mood-3 { color: #f59e0b; }
+.mood-4 { color: #3b82f6; }
+.mood-5 { color: #10b981; }
+
+/* 加载状态 */
+.loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(2px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: inherit;
+}
+
+/* 成功/失败状态 */
+.action-success {
+  border-left: 4px solid #10b981;
+  background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+}
+
+.action-failure {
+  border-left: 4px solid #ef4444;
+  background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+}
+
+/* 伙伴列表 */
+.ally-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.ally-badge {
+  background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+  border: 1px solid #10b981;
+  color: #047857;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+/* 经验值显示 */
+.experience-item {
+  background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+  border-left: 3px solid #10b981;
+  padding: 0.5rem;
+  margin: 0.25rem 0;
+  border-radius: 0 0.375rem 0.375rem 0;
+  font-size: 0.875rem;
+  color: #047857;
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+  .status-bar {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+  }
+  
+  .scene-container {
+    padding: 1rem;
+  }
+  
+  .dialogue-bubble {
+    padding: 0.75rem;
+  }
+  
+  .character-avatar {
+    width: 2.5rem;
+    height: 2.5rem;
+    font-size: 1.25rem;
+  }
+}
