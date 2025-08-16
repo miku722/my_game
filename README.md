@@ -12,7 +12,7 @@
 ```bash
 # 1. 克隆/创建项目
 git clone https://github.com/miku722/my_game.git
-cd museum-portal-game
+cd my_game
 # 或者手动复制所有文件到该目录
 
 # 2. 安装依赖
