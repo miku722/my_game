@@ -18,5 +18,8 @@ cd my_game
 # 2. 安装依赖
 npm install
 
-# 3. 启动游戏
+# 3. 复制环境变量
+cp .env.example .env.local
+
+# 4. 启动游戏
 npm run dev
