@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { characters } from '@data/characters';
+import { collections } from '@data/collections';
 
 const initialGameState = {
   currentLocation: 'museum',
@@ -13,7 +13,13 @@ const initialGameState = {
   allies: [],
   timeRemaining: 300,
   isProcessing: false,
-  dangerLevel: 1
+  dangerLevel: 1,
+  health: 100,
+  maxHealth: 100,
+  sanity: 100,
+  maxSanity: 100,
+  stamina: 100,
+  maxStamina: 100
 };
 
 export const useGameState = () => {
@@ -26,7 +32,7 @@ export const useGameState = () => {
   const resetGame = useCallback(() => {
     setGameState(initialGameState);
     // 重置角色状态
-    Object.values(characters).forEach(char => {
+    Object.values(collections).forEach(char => {
       char.recruited = false;
     });
   }, []);
@@ -42,8 +48,8 @@ export const useGameState = () => {
       };
 
       // 标记角色为已招募
-      if (characters[allyName]) {
-        characters[allyName].recruited = true;
+      if (collections[allyName]) {
+        collections[allyName].recruited = true;
       }
 
       // 检查是否完成游戏

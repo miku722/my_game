@@ -1,21 +1,57 @@
 import React, { useState } from 'react';
-import { Clock, Map, Heart, Star, ArrowRight, History, Send, Shield, Zap, BookOpen, Crown, Eye } from 'lucide-react';
+import { Clock, Crown, Map, Shield, Star, History, Zap, BookOpen, Heart } from 'lucide-react';
 import { useGameState } from '@hooks/useGameState';
 import { qwenAPI } from '@services/qwenAPI';
-import { characters } from '@data/characters';
+import { collections } from '@data/collections';
 import { locations } from '@data/locations';
 import { villains } from '@data/villains';
+import { player, updatePlayer } from '@data/player';
+import StatusBar from './components/StatusBar';
+import CurrentScene from './components/CurrentScene';
+import AlliesList from './components/AlliesList';
+import ActionHistory from './components/ActionHistory';
+import ActionInput from './components/ActionInput';
+import CollectionsInfo from './components/CollectionsInfo';
+import Experiences from './components/Experiences';
+import GameStat from './components/GameStat';
 
 const MuseumPortalGame = () => {
   const { gameState, updateGameState, resetGame, recruitAlly } = useGameState();
   const [playerAction, setPlayerAction] = useState('');
+  const [playerState, setPlayerState] = useState({
+    mood: player.mood,
+    inventory: [...player.inventory],
+    health: player.health,
+    san: player.san,
+    stamina: player.stamina
+  });
   const [actionHistory, setActionHistory] = useState([]);
-
+  
+  const getMoodText = (mood) => {
+    const moods = ['😰 恐惧', '😟 紧张', '😐 冷静', '😊 自信', '😄 兴奋'];
+    return moods[mood - 1] || '😊 开心';
+  };
+  
+  const getMoodColor = (mood) => {
+    const colors = ['text-red-500', 'text-orange-500', 'text-yellow-500', 'text-blue-500', 'text-green-500'];
+    return colors[mood - 1] || 'text-green-500';
+  };
+  
+  const getDangerText = (danger) => {
+    const levels = ['🟢 安全', '🟡 警戒', '🟠 危险', '🔴 高危', '💀 致命'];
+    return levels[danger - 1] || '🟢 安全';
+  };
+  
+  const getDangerColor = (danger) => {
+    const colors = ['text-green-500', 'text-yellow-500', 'text-orange-500', 'text-red-500', 'text-purple-500'];
+    return colors[danger - 1] || 'text-green-500';
+  };
+  
   const processPlayerAction = async (action) => {
     updateGameState({ isProcessing: true });
     
     const currentLocation = locations[gameState.currentLocation];
-    const availableCharacters = Object.values(characters).filter(char => 
+    const availableCollections = Object.values(collections).filter(char => 
       gameState.currentLocation === 'portal_discovery' || gameState.allies.includes(char.name)
     );
     
@@ -27,13 +63,13 @@ const MuseumPortalGame = () => {
 - 场景描述：${currentLocation.description}
 - 场景背景：${currentLocation.context}
 - 危险等级：${gameState.dangerLevel}/5
-- 玩家心情：${gameState.playerMood}/5 (1=沮丧，5=开心)
+- 玩家心情：${playerState.mood}/5 (1=沮丧，5=开心)
 - 已招募伙伴：${gameState.allies.length}/4
 - 当前伙伴：${gameState.allies.join(', ') || '无'}
-- 玩家物品：${gameState.inventory.join(', ') || '手电筒、对讲机'}
+- 玩家物品：${playerState.inventory.join(', ') || '手电筒、对讲机'}
 
 在场角色信息：
-${availableCharacters.map(char => `${char.name}（${char.origin}）：${char.personality}，${char.description}`).join('\n')}
+${availableCollections.map(char => `${char.name}（${char.origin}）：${char.personality}，${char.description}`).join('\n')}
 
 玩家行动：${action}
 
@@ -52,7 +88,7 @@ ${availableCharacters.map(char => `${char.name}（${char.origin}）：${char.per
   "inventoryChange": ["新物品"] 或 [],
   "allyRecruited": "角色名字" 或 null,
   "dangerChange": -1到+1之间的整数,
-  "characterDialogue": "相关角色的对话回应",
+  "collectionDialogue": "相关角色的对话回应",
   "nextSuggestions": ["建议1", "建议2", "建议3"]
 }
 `;
@@ -73,6 +109,7 @@ ${availableCharacters.map(char => `${char.name}（${char.origin}）：${char.per
         }
         if (result.inventoryChange && result.inventoryChange.length > 0) {
           updates.inventory = [...gameState.inventory, ...result.inventoryChange];
+          setPlayerState(prev => ({...prev, inventory: [...prev.inventory, ...result.inventoryChange]}));
         }
 
         updateGameState(updates);
@@ -94,7 +131,7 @@ ${availableCharacters.map(char => `${char.name}（${char.origin}）：${char.per
       setActionHistory(prev => [...prev, {
         action: action,
         result: result.result,
-        dialogue: result.characterDialogue,
+        dialogue: result.collectionDialogue,
         feasible: result.feasible,
         suggestions: result.nextSuggestions || []
       }]);
@@ -119,26 +156,6 @@ ${availableCharacters.map(char => `${char.name}（${char.origin}）：${char.per
     }
   };
 
-  const getMoodText = (mood) => {
-    const moods = ['😰 恐惧', '😟 紧张', '😐 冷静', '😊 自信', '😄 兴奋'];
-    return moods[mood - 1] || '😊 开心';
-  };
-
-  const getMoodColor = (mood) => {
-    const colors = ['text-red-500', 'text-orange-500', 'text-yellow-500', 'text-blue-500', 'text-green-500'];
-    return colors[mood - 1] || 'text-green-500';
-  };
-
-  const getDangerText = (danger) => {
-    const levels = ['🟢 安全', '🟡 警戒', '🟠 危险', '🔴 高危', '💀 致命'];
-    return levels[danger - 1] || '🟢 安全';
-  };
-
-  const getDangerColor = (danger) => {
-    const colors = ['text-green-500', 'text-yellow-500', 'text-orange-500', 'text-red-500', 'text-purple-500'];
-    return colors[danger - 1] || 'text-green-500';
-  };
-
   // 结局界面
   if (gameState.currentLocation === 'ending') {
     return (
@@ -160,13 +177,24 @@ ${availableCharacters.map(char => `${char.name}（${char.origin}）：${char.per
               作为一名普通的夜班保安，你用自己的善良和智慧化解了一场时空危机。
               博物馆重新恢复了平静，但你的内心已经发生了翻天覆地的变化。
             </p>
+            <p className="text-gray-700 leading-relaxed">
+              <strong>你的个人状态：</strong>
+            </p>
+            <div className="space-y-2 text-sm">
+              <p>生命值: {playerState.health}/100</p>
+              <p>SAN值: {playerState.san}/100</p>
+              <p>体力值: {playerState.stamina}/50</p>
+            </div>
           </div>
           
           <div className="grid md:grid-cols-2 gap-6 mb-6">
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
               <h3 className="font-semibold text-blue-800 mb-2">📊 冒险统计</h3>
               <div className="space-y-2 text-sm">
-                <p>最终心情: {getMoodText(gameState.playerMood)}</p>
+                <p>最终心情: {getMoodText(playerState.mood)}</p>
+                <p>当前心情: {playerState.mood}/5</p>
+                <p>物品数量: {playerState.inventory.length + 2} 件</p>
+                <p>物品清单: {playerState.inventory.join(', ')}</p>
                 <p>招募伙伴: {gameState.companionsFound}/4</p>
                 <p>成长经历: {gameState.experiences.length} 个</p>
                 <p>危险等级: {getDangerText(gameState.dangerLevel)}</p>
@@ -177,7 +205,7 @@ ${availableCharacters.map(char => `${char.name}（${char.origin}）：${char.per
               <h3 className="font-semibold text-purple-800 mb-2">👥 招募的伙伴</h3>
               <div className="space-y-1">
                 {gameState.allies.map(ally => {
-                  const char = characters[ally];
+                  const char = collections[ally];
                   return char ? (
                     <p key={ally} className="text-sm text-purple-600">
                       {char.icon} {char.name}（{char.origin}）
@@ -200,7 +228,7 @@ ${availableCharacters.map(char => `${char.name}（${char.origin}）：${char.per
   }
 
   const currentLocation = locations[gameState.currentLocation];
-
+  
   return (
     <div className="max-w-4xl mx-auto p-6 bg-gradient-to-br from-blue-100 to-purple-100 min-h-screen">
       <div className="bg-white rounded-lg shadow-lg p-8">
@@ -212,174 +240,32 @@ ${availableCharacters.map(char => `${char.name}（${char.origin}）：${char.per
           </div>
           <p className="text-gray-600">与文物化身对话，说服他们回到现代</p>
         </div>
-
+        
         {/* Status Bar */}
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6 p-4 bg-gray-50 rounded-lg">
-          <div className="text-center">
-            <Heart className={`w-6 h-6 mx-auto mb-2 ${getMoodColor(gameState.playerMood)}`} />
-            <p className="text-sm font-medium">心情</p>
-            <p className={`text-xs ${getMoodColor(gameState.playerMood)}`}>
-              {getMoodText(gameState.playerMood)}
-            </p>
-          </div>
-          <div className="text-center">
-            <Map className="w-6 h-6 text-purple-600 mx-auto mb-2" />
-            <p className="text-sm font-medium">位置</p>
-            <p className="text-xs text-purple-600">{currentLocation.name}</p>
-          </div>
-          <div className="text-center">
-            <Shield className={`w-6 h-6 mx-auto mb-2 ${getDangerColor(gameState.dangerLevel)}`} />
-            <p className="text-sm font-medium">危险</p>
-            <p className={`text-xs ${getDangerColor(gameState.dangerLevel)}`}>
-              {getDangerText(gameState.dangerLevel)}
-            </p>
-          </div>
-          <div className="text-center">
-            <Star className="w-6 h-6 text-green-600 mx-auto mb-2" />
-            <p className="text-sm font-medium">伙伴</p>
-            <p className="text-xs text-green-600">{gameState.companionsFound}/4</p>
-          </div>
-          <div className="text-center">
-            <History className="w-6 h-6 text-orange-600 mx-auto mb-2" />
-            <p className="text-sm font-medium">物品</p>
-            <p className="text-xs text-orange-600">{gameState.inventory.length + 2}</p>
-          </div>
-        </div>
-
+        <StatusBar playerState={playerState} gameState={gameState} currentLocation={currentLocation} />
+        
         {/* Current Scene */}
-        <div className="mb-6">
-          <h2 className="text-xl font-semibold mb-4 text-gray-800">
-            📍 {currentLocation.name}
-          </h2>
-          <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
-            <p className="text-gray-700 leading-relaxed">
-              {currentLocation.description}
-            </p>
-            <div className="mt-3 pt-3 border-t border-amber-300">
-              <p className="text-sm text-amber-800">
-                <strong>场景信息：</strong>{currentLocation.context}
-              </p>
-            </div>
-          </div>
-        </div>
-
+        <CurrentScene currentLocation={currentLocation} />
+        
         {/* Current Allies */}
-        {gameState.allies.length > 0 && (
-          <div className="mb-6">
-            <h3 className="text-lg font-medium text-gray-800 mb-3">👥 当前伙伴</h3>
-            <div className="flex flex-wrap gap-2">
-              {gameState.allies.map(ally => {
-                const char = characters[ally];
-                return char ? (
-                  <div key={ally} className="bg-green-100 border border-green-300 rounded-lg p-2 text-sm">
-                    <span className="text-lg mr-1">{char.icon}</span>
-                    <span className="font-medium">{char.name}</span>
-                    <span className="text-gray-600 ml-1">({char.ability})</span>
-                  </div>
-                ) : null;
-              })}
-            </div>
-          </div>
-        )}
-
+        <AlliesList gameState={gameState} collections={collections} />
+        
         {/* Action History */}
-        {actionHistory.length > 0 && (
-          <div className="mb-6 max-h-60 overflow-y-auto">
-            <h3 className="text-lg font-medium text-gray-800 mb-3">📜 互动记录</h3>
-            {actionHistory.slice(-2).map((entry, index) => (
-              <div key={index} className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                <p className="text-sm text-blue-800 font-medium">你的行动：{entry.action}</p>
-                <p className="text-sm text-gray-700 mt-1">{entry.result}</p>
-                {entry.dialogue && (
-                  <div className="mt-2 p-2 bg-white rounded border-l-4 border-blue-400">
-                    <p className="text-sm text-blue-600 italic">💬 "{entry.dialogue}"</p>
-                  </div>
-                )}
-                {entry.suggestions && entry.suggestions.length > 0 && (
-                  <div className="mt-2">
-                    <p className="text-xs text-gray-500">建议行动：</p>
-                    <ul className="text-xs text-gray-600 ml-2">
-                      {entry.suggestions.map((suggestion, i) => (
-                        <li key={i}>• {suggestion}</li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        )}
-
+        <ActionHistory actionHistory={actionHistory} />
+        
         {/* Action Input */}
-        <div className="space-y-4">
-          <h3 className="text-lg font-medium text-gray-800">💬 你想要做什么或说什么？</h3>
-          <div className="space-y-3">
-            <textarea
-              value={playerAction}
-              onChange={(e) => setPlayerAction(e.target.value)}
-              placeholder="描述你的行动或对话，比如：我走向翠娘，温和地说：'您好，我是这里的保安小张。我知道您可能对现代世界感到困惑，但我希望能帮助您...'"
-              className="w-full p-3 border border-gray-300 rounded-lg resize-none h-24 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              disabled={gameState.isProcessing}
-            />
-            <button
-              onClick={handleSubmitAction}
-              disabled={!playerAction.trim() || gameState.isProcessing}
-              className="w-full bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
-            >
-              {gameState.isProcessing ? (
-                <div className="flex items-center">
-                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-                  AI正在处理你的行动...
-                </div>
-              ) : (
-                <div className="flex items-center">
-                  <Send className="w-5 h-5 mr-2" />
-                  执行行动
-                </div>
-              )}
-            </button>
-          </div>
-        </div>
-
-        {/* Character Info */}
-        <div className="mt-6 grid md:grid-cols-2 gap-4">
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <h3 className="font-semibold text-blue-800 mb-2">📚 文物伙伴</h3>
-            <div className="space-y-2">
-              {Object.values(characters).map(char => (
-                <div key={char.name} className={`text-sm ${char.recruited ? 'text-green-600' : 'text-gray-600'}`}>
-                  <span className="text-lg mr-1">{char.icon}</span>
-                  <strong>{char.name}</strong>({char.origin})
-                  {char.recruited && <span className="ml-2 text-green-500">✓已招募</span>}
-                </div>
-              ))}
-            </div>
-          </div>
-          
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-            <h3 className="font-semibold text-red-800 mb-2">⚠️ 危险角色</h3>
-            <div className="space-y-2">
-              {Object.values(villains).map(villain => (
-                <div key={villain.name} className="text-sm text-red-600">
-                  <span className="text-lg mr-1">{villain.icon}</span>
-                  <strong>{villain.name}</strong>({villain.origin})
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-
+        <ActionInput 
+          playerAction={playerAction} 
+          setPlayerAction={setPlayerAction} 
+          handleSubmitAction={handleSubmitAction}
+          gameState={gameState} 
+        />
+        
+        {/* Collection Info */}
+        <CollectionsInfo collections={collections} villains={villains} />
+        
         {/* Recent Experiences */}
-        {gameState.experiences.length > 0 && (
-          <div className="mt-6 p-4 bg-green-50 border border-green-200 rounded-lg">
-            <h3 className="font-semibold text-green-800 mb-2">✨ 最近的感悟</h3>
-            <div className="space-y-1">
-              {gameState.experiences.slice(-3).map((exp, index) => (
-                <p key={index} className="text-sm text-green-700">• {exp}</p>
-              ))}
-            </div>
-          </div>
-        )}
+        <Experiences gameState={gameState} />
       </div>
     </div>
   );
