@@ -132,6 +132,10 @@ export const useGameState = () => {
     gameState,
     updateGameState,
     resetGame,
-    recruitAlly
+    recruitAlly,
+    startLevel,
+    completeLevel,
+    updateLevelFlag,
+    addItemToInventory
   };
 };

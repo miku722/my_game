@@ -1,7 +1,33 @@
 import React from 'react';
 import { Send } from 'lucide-react';
+import { processPlayerAction } from './ActionProcessor';
 
-const ActionInput = ({ playerAction, setPlayerAction, handleSubmitAction, gameState }) => {
+const ActionInput = ({ 
+  playerAction, 
+  setPlayerAction, 
+  gameState, 
+  updateGameState,
+  playerState,
+  setPlayerState,
+  setActionHistory,
+  recruitAlly
+}) => {
+  
+  const handleSubmitAction = async () => {
+    if (playerAction.trim() && !gameState.isProcessing) {
+      await processPlayerAction(
+        playerAction.trim(),
+        gameState,
+        playerState,
+        updateGameState,
+        setPlayerState,
+        setActionHistory,
+        recruitAlly
+      );
+      setPlayerAction('');
+    }
+  };
+  
   return (
     <div className="space-y-4">
       <h3 className="text-lg font-medium text-gray-800">💬 你想要做什么或说什么？</h3>

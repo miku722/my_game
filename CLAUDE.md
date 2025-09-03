@@ -102,7 +102,7 @@ The prompt sent to the AI includes:
 - clsx for conditional class names
 
 ## Limitations
-  ⚠️ UI 设计要求：
+  UI 设计要求：
 - 所有新增 UI 元素（例如血条、SAN 值、体力条、宝箱奖励提示、文物收集展示、关卡进度等），必须完全继承本项目原有的 UI 风格和代码规范。
 - 本项目的前端使用 React + Tailwind CSS，整体风格简洁、卡片式、圆角和柔和阴影。
 - 新增的组件或进度条请复用已有组件的样式（例如 `StatusBar`、`Card`、`ActionHistory`），保持一致的字体、颜色和间距。
@@ -110,3 +110,6 @@ The prompt sent to the AI includes:
 - 所有 UI 改动必须“看起来像是原本游戏里就有的”，无突兀感。
 
   UI 要求：请严格遵守上面的 UI 风格约束说明。
+
+  代码设计要求：
+    时刻要注意封装和单一职责的原则。
