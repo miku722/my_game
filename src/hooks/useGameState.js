@@ -19,7 +19,22 @@ const initialGameState = {
   sanity: 100,
   maxSanity: 100,
   stamina: 100,
-  maxStamina: 100
+  maxStamina: 100,
+  // Level progression tracking
+  levelProgress: { 1: false },
+  // Level 1 flags
+  level1_flags: {
+    noticed_missing_artifacts: false,
+    noticed_key_clue: false,
+    found_first_key: false,
+    portal_clue_acquired: false
+  },
+  // Current level
+  currentLevel: null,
+  // Current step in level
+  currentStep: null,
+  // Inventory system
+  inventory: []
 };
 
 export const useGameState = () => {
@@ -27,6 +42,58 @@ export const useGameState = () => {
 
   const updateGameState = useCallback((updates) => {
     setGameState(prev => ({ ...prev, ...updates }));
+  }, []);
+
+  const startLevel = useCallback((levelId) => {
+    setGameState(prev => ({
+      ...prev,
+      currentLevel: levelId,
+      currentStep: 1
+    }));
+  }, []);
+
+  const completeLevel = useCallback((levelId) => {
+    setGameState(prev => {
+      const newLevelProgress = { ...prev.levelProgress };
+      newLevelProgress[levelId] = true;
+      
+      // Automatically unlock next level
+      if (levelId < 5) {
+        newLevelProgress[levelId + 1] = true;
+      }
+      
+      return {
+        ...prev,
+        levelProgress: newLevelProgress
+      };
+    });
+  }, []);
+
+  const updateLevelFlag = useCallback((levelId, flagName, value) => {
+    setGameState(prev => {
+      const flagKey = `level${levelId}_flags`;
+      const newFlags = {
+        ...prev[flagKey],
+        [flagName]: value
+      };
+      
+      return {
+        ...prev,
+        [flagKey]: newFlags
+      };
+    });
+  }, []);
+
+  const addItemToInventory = useCallback((item) => {
+    setGameState(prev => {
+      if (!prev.inventory.includes(item)) {
+        return {
+          ...prev,
+          inventory: [...prev.inventory, item]
+        };
+      }
+      return prev;
+    });
   }, []);
 
   const resetGame = useCallback(() => {

@@ -14,6 +14,9 @@ import ActionInput from './components/ActionInput';
 import CollectionsInfo from './components/CollectionsInfo';
 import Experiences from './components/Experiences';
 import GameStat from './components/GameStat';
+import StartScreen from '../components/StartScreen';
+import LevelSelection from '../components/levels/LevelSelection';
+import Level1Scene from '../components/levels/level1/Level1Scene';
 
 const MuseumPortalGame = () => {
   const { gameState, updateGameState, resetGame, recruitAlly } = useGameState();
@@ -26,6 +29,9 @@ const MuseumPortalGame = () => {
     stamina: player.stamina
   });
   const [actionHistory, setActionHistory] = useState([]);
+  
+  // 游戏状态：'start' | 'level_selection' | 'playing' | 'ending'
+  const [gameStatePhase, setGameStatePhase] = useState('start');
   
   const getMoodText = (mood) => {
     const moods = ['😰 恐惧', '😟 紧张', '😐 冷静', '😊 自信', '😄 兴奋'];
@@ -156,8 +162,26 @@ ${availableCollections.map(char => `${char.name}（${char.origin}）：${char.pe
     }
   };
 
+  // 游戏开始界面
+  if (gameStatePhase === 'start') {
+    return <StartScreen onStart={() => setGameStatePhase('level_selection')} />;
+  }
+  
+  // 关卡选择界面
+  if (gameStatePhase === 'level_selection') {
+    return <LevelSelection onStartLevel={(levelId) => {
+      updateGameState({ currentLevel: levelId });
+      setGameStatePhase('playing');
+    }} />;
+  }
+  
   // 结局界面
   if (gameState.currentLocation === 'ending') {
+    // 在结局界面时，更新游戏阶段
+    if (gameStatePhase !== 'ending') {
+      setGameStatePhase('ending');
+    }
+    
     return (
       <div className="max-w-4xl mx-auto p-6 bg-gradient-to-br from-purple-100 to-blue-100 min-h-screen">
         <div className="bg-white rounded-lg shadow-lg p-8">
@@ -217,7 +241,10 @@ ${availableCollections.map(char => `${char.name}（${char.origin}）：${char.pe
           </div>
           
           <button 
-            onClick={resetGame}
+            onClick={() => {
+              resetGame();
+              setGameStatePhase('start');
+            }}
             className="w-full bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700 transition-colors"
           >
             重新开始奇遇
@@ -227,6 +254,17 @@ ${availableCollections.map(char => `${char.name}（${char.origin}）：${char.pe
     );
   }
 
+  // 如果当前有活动关卡，显示关卡内容
+  if (gameState.currentLevel) {
+    if (gameState.currentLevel === 1) {
+      return <Level1Scene />;
+    }
+    // 可以在这里添加更多关卡的条件
+    // } else if (gameState.currentLevel === 2) {
+    //   return <Level2Scene />;
+    // }
+  }
+  
   const currentLocation = locations[gameState.currentLocation];
   
   return (
