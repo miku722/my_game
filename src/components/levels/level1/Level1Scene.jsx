@@ -1,14 +1,10 @@
 import { useState, useEffect } from 'react';
-import { useGameState } from '@hooks/useGameState';
-import ActionInput from '@game_components/ActionInput';
 
 const Level1Scene = () => {
-  const { gameState, updateGameState, updateLevelFlag, addItemToInventory, completeLevel } = useGameState();
+  // Array of completed paragraphs
+  const [completedParagraphs, setCompletedParagraphs] = useState([]);
+  // Current paragraph being typed
   const [currentText, setCurrentText] = useState('');
-  const [showContinuePrompt, setShowContinuePrompt] = useState(false);
-  const [sceneStep, setSceneStep] = useState(1);
-  const [isTyping, setIsTyping] = useState(true);
-  const [playerAction, setPlayerAction] = useState('');
   
   // Level 1 scene descriptions split into paragraphs
   const sceneDescriptionParagraphs = [
@@ -34,165 +30,64 @@ const Level1Scene = () => {
   
   // Current paragraph index within the current step
   const [paragraphIndex, setParagraphIndex] = useState(0);
-
-  // Typewriter effect for scene descriptions
+  
+  // Simple typewriter effect for scene descriptions
   useEffect(() => {
-    if (sceneStep > 0 && sceneStep <= 3) {
-      const paragraphs = sceneDescriptionParagraphs[sceneStep - 1];
-      const currentParagraph = paragraphs[paragraphIndex];
-      
-      let index = 0;
-      setIsTyping(true);
-      setCurrentText('');
-      
-      const typeWriter = setInterval(() => {
-        if (index < currentParagraph.length) {
-          setCurrentText(currentParagraph.slice(0, index + 1));
-          index++;
-        } else {
-          clearInterval(typeWriter);
-          setIsTyping(false);
-          setShowContinuePrompt(true);
-        }
-      }, 100);
-      
-      return () => clearInterval(typeWriter);
-    }
-  }, [sceneStep, paragraphIndex]);
-  
-  // Handle clicking to continue to next paragraph or scene
-  const handleContinue = () => {
-    if (isTyping) return;
+    // Use the first set of paragraphs for the typewriter effect
+    const paragraphs = sceneDescriptionParagraphs[0];
+    const currentParagraph = paragraphs[0];
     
-    setShowContinuePrompt(false);
+    let index = 0;
+    // setIsTyping(true);
+    setCurrentText('');
     
-    const paragraphs = sceneDescriptionParagraphs[sceneStep - 1];
-    
-    // If there are more paragraphs in current step, go to next paragraph
-    if (paragraphIndex < paragraphs.length - 1) {
-      setParagraphIndex(paragraphIndex + 1);
-    } else {
-      // If this is the last paragraph, move to next step
-      if (sceneStep === 1) {
-        // Set flags for Step 1 completion
-        updateLevelFlag(1, 'noticed_missing_artifacts', true);
-        updateLevelFlag(1, 'noticed_key_clue', true);
-      } else if (sceneStep === 2) {
-        // Set flag for Step 2 completion and add key to inventory
-        updateLevelFlag(1, 'found_first_key', true);
-        addItemToInventory('金色钥匙');
-      } else if (sceneStep === 3) {
-        // Set flag for Step 4 completion
-        updateLevelFlag(1, 'portal_clue_acquired', true);
+    const typeWriter = setInterval(() => {
+      if (index < currentParagraph.length) {
+        setCurrentText(currentParagraph.slice(0, index + 1));
+        index++;
+      } else {
+        clearInterval(typeWriter);
+        // Add the completed paragraph to the array of completed paragraphs
+        setCompletedParagraphs(prev => [...prev, currentParagraph]);
+        setCurrentText(''); // Clear currentText after paragraph is completed
+        // setIsTyping(false);
       }
+    }, 40);
+    
+    return () => clearInterval(typeWriter);
+  }, []);
 
-      if (sceneStep < 3) {
-        setSceneStep(sceneStep + 1);
-        setParagraphIndex(0); // Reset paragraph index for new step
-      } else {
-        // After final scene, allow player actions
-        updateGameState({ currentStep: 'action' });
-      }
-    }
-  };
-  
-  // Process player action
-  const processPlayerAction = (action) => {
-    // Define valid actions for each step
-    const validActions = {
-      1: ['检查失踪展柜', '察看周边环境', '搜寻安全监控记录'],
-      2: ['拾起钥匙', '检查钥匙是否与文物出逃相关', '尝试在展厅寻找钥匙可能触发的机关'],
-      3: ['探索通道', '检查通道周边环境', '准备角色属性']
-    };
-    
-    const currentStep = sceneStep;
-    const normalizedAction = action.trim();
-    
-    // Check if action is valid for current step
-    const isValidAction = validActions[currentStep]?.some(
-      validAction => normalizedAction.includes(validAction) || validAction.includes(normalizedAction)
-    );
-    
-    if (isValidAction) {
-      // Action is valid, progress story
-      if (currentStep === 1 && normalizedAction.includes('检查失踪展柜')) {
-        updateLevelFlag(1, 'noticed_missing_artifacts', true);
-      }
-      
-      // Move to next step after valid action
-      if (currentStep < 3) {
-        setSceneStep(currentStep + 1);
-      } else {
-        // Check if all conditions for level completion are met
-        const { level1_flags } = gameState;
-        if (level1_flags.noticed_missing_artifacts && 
-            level1_flags.noticed_key_clue && 
-            level1_flags.found_first_key && 
-            level1_flags.portal_clue_acquired) {
-          completeLevel(1);
-          updateGameState({ currentLocation: 'portal_discovery' });
-        }
-      }
-    } else {
-      // Invalid action, provide feedback but don't progress
-      alert('这个动作在这里可能不太合适，试试其他行动？');
-    }
-    
-    setPlayerAction('');
-  };
-  
-  const handleSubmitAction = () => {
-    if (playerAction.trim()) {
-      processPlayerAction(playerAction.trim());
-    }
-  };
-  
   return (
-    <div className="max-w-4xl mx-auto p-6 bg-gradient-to-br from-blue-100 to-purple-100 min-h-screen">
-      <div className="bg-white rounded-lg shadow-lg p-8">
+    <div className="flex flex-col h-screen bg-gradient-to-br from-blue-100 to-purple-100">
+      <div className="bg-white rounded-t-lg shadow-lg p-8 flex-grow">
         {/* Scene Content */}
         <div className="mb-8">
           <h2 className="text-2xl font-bold text-gray-800 mb-4">馆内启程</h2>
           
-          <div className="bg-amber-50 border border-amber-200 rounded-lg p-6 mb-6 min-h-40">
-            <p className="text-gray-700 leading-relaxed whitespace-pre-line">
-              {currentText}
-            </p>
-            
-            {showContinuePrompt && !isTyping && (
-              <div 
-                className="mt-4 p-4 bg-blue-100 border border-blue-300 rounded-lg text-center cursor-pointer hover:bg-blue-200"
-                onClick={handleContinue}
-              >
-                点击空白处继续
-              </div>
-            )}
+          <div className="bg-amber-50 border border-amber-200 rounded-lg p-6 mb-6 flex-grow overflow-y-auto custom-scrollbar">
+            <div className="text-gray-700 leading-relaxed text-left space-y-4">
+              {/* Render all completed paragraphs with fade-out animation as they move up */}
+              {completedParagraphs.map((paragraph, index) => (
+                <p 
+                  key={index} 
+                  className="whitespace-pre-line text-left transition-all duration-500"
+                  style={{ 
+                    opacity: Math.max(0, 1 - (index / completedParagraphs.length) * 0.5),
+                    transform: `translateY(-${Math.min(100, index * 20)}px)`,
+                    position: 'relative'
+                  }}
+                >
+                  {paragraph}
+                </p>
+              ))}
+              {/* Render current paragraph being typed, if there is one */}
+              {currentText && (
+                <p className="whitespace-pre-line text-left font-medium text-gray-800">
+                  {currentText}
+                </p>
+              )}
+            </div>
           </div>
-        </div>
-        
-        {/* Action Input - only show after scene descriptions are complete */}
-        {gameState.currentStep === 'action' && (
-          <ActionInput 
-            playerAction={playerAction} 
-            setPlayerAction={setPlayerAction} 
-            handleSubmitAction={handleSubmitAction}
-            gameState={{ isProcessing: false }} 
-          />
-        )}
-        
-        {/* Back to Level Selection Button */}
-        <div className="mt-8 text-center">
-          <button
-            onClick={() => {
-              updateGameState({ 
-                currentLevel: null 
-              });
-              // The parent component (MuseumPortalGame) will handle the phase change
-            }}
-            className="bg-gray-600 text-white px-6 py-3 rounded-lg hover:bg-gray-700 transition-colors"
-          >
-            返回关卡选择
-          </button>
         </div>
       </div>
     </div>
