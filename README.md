@@ -7,6 +7,18 @@
 [![Tailwind](https://img.shields.io/badge/Tailwind-3.3-38B2AC.svg)](https://tailwindcss.com/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
 
+## 🎮 游戏截图
+
+> 下面是部分游戏画面示例：
+
+<p align="center">
+  <img src="screenshots/homepage.png" alt="游戏启动界面" width="600"/>
+  <br/>
+  <img src="screenshots/levelselection.png" alt="关卡1对话场景" width="600"/>
+  <br/>
+  <img src="screenshots/level1.png" alt="关卡1对话场景" width="600"/>
+</p>
+
 ## 🚀 一键启动（30秒开始游戏）
 
 ```bash
