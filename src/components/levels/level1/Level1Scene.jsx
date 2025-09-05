@@ -1,10 +1,18 @@
 import { useState, useEffect } from 'react';
 
 const Level1Scene = () => {
-  // Array of completed paragraphs
-  const [completedParagraphs, setCompletedParagraphs] = useState([]);
-  // Current paragraph being typed
+  // Complete text that has been fully typed and displayed
+  const [displayedText, setDisplayedText] = useState('');
+  // Current text that is being typed (shown as if being typed)
   const [currentText, setCurrentText] = useState('');
+  // Flag to track if we're waiting for user click
+  const [waitingForClick, setWaitingForClick] = useState(false);
+  // Current paragraph index
+  const [currentParagraphIndex, setCurrentParagraphIndex] = useState(0);
+  // Current step index (0 for first group of paragraphs)
+
+  // Current index in the flattened paragraphs array
+  const [currentParagraphFlatIndex, setCurrentParagraphFlatIndex] = useState(0);
   
   // Level 1 scene descriptions split into paragraphs
   const sceneDescriptionParagraphs = [
@@ -27,18 +35,18 @@ const Level1Scene = () => {
       "微风从通道深处吹来，卷起地面上落下的灰尘，带着低沉的回响。你感到胸口的悸动与紧张交织，意识到真正的冒险旅程即将开始。"
     ]
   ];
+    // All paragraphs flattened into a single array for sequential processing
+  const allParagraphs = sceneDescriptionParagraphs.flat();
   
   // Current paragraph index within the current step
   const [paragraphIndex, setParagraphIndex] = useState(0);
   
   // Simple typewriter effect for scene descriptions
   useEffect(() => {
-    // Use the first set of paragraphs for the typewriter effect
-    const paragraphs = sceneDescriptionParagraphs[0];
-    const currentParagraph = paragraphs[0];
+    // Get the current paragraph from the flattened array
+    const currentParagraph = allParagraphs[currentParagraphFlatIndex];
     
     let index = 0;
-    // setIsTyping(true);
     setCurrentText('');
     
     const typeWriter = setInterval(() => {
@@ -47,44 +55,55 @@ const Level1Scene = () => {
         index++;
       } else {
         clearInterval(typeWriter);
-        // Add the completed paragraph to the array of completed paragraphs
-        setCompletedParagraphs(prev => [...prev, currentParagraph]);
-        setCurrentText(''); // Clear currentText after paragraph is completed
-        // setIsTyping(false);
+        // Set flag to wait for user click
+        setWaitingForClick(true);
       }
     }, 40);
     
     return () => clearInterval(typeWriter);
-  }, []);
+  }, [currentParagraphFlatIndex]);
+
+  // Handle click to continue to next paragraph
+  const handleContinue = () => {
+    if (waitingForClick) {
+      setWaitingForClick(false);
+      
+      // Add the current paragraph to the displayed text
+      setDisplayedText(prev => prev + allParagraphs[currentParagraphFlatIndex] + '\n\n');
+      
+      // Move to next paragraph in the flattened array
+      if (currentParagraphFlatIndex < allParagraphs.length - 1) {
+        setCurrentParagraphFlatIndex(prev => prev + 1);
+      } else {
+        // All paragraphs completed
+        setCurrentText('');
+      }
+    }
+  };
 
   return (
-    <div className="flex flex-col h-screen bg-gradient-to-br from-blue-100 to-purple-100">
+    <div 
+      className="flex flex-col h-screen bg-gradient-to-br from-blue-100 to-purple-100"
+      onClick={handleContinue}
+      style={{ cursor: waitingForClick ? 'pointer' : 'default' }}
+    >
       <div className="bg-white rounded-t-lg shadow-lg p-8 flex-grow">
         {/* Scene Content */}
         <div className="mb-8">
           <h2 className="text-2xl font-bold text-gray-800 mb-4">馆内启程</h2>
           
           <div className="bg-amber-50 border border-amber-200 rounded-lg p-6 mb-6 flex-grow overflow-y-auto custom-scrollbar">
-            <div className="text-gray-700 leading-relaxed text-left space-y-4">
-              {/* Render all completed paragraphs with fade-out animation as they move up */}
-              {completedParagraphs.map((paragraph, index) => (
-                <p 
-                  key={index} 
-                  className="whitespace-pre-line text-left transition-all duration-500"
-                  style={{ 
-                    opacity: Math.max(0, 1 - (index / completedParagraphs.length) * 0.5),
-                    transform: `translateY(-${Math.min(100, index * 20)}px)`,
-                    position: 'relative'
-                  }}
-                >
-                  {paragraph}
-                </p>
-              ))}
-              {/* Render current paragraph being typed, if there is one */}
-              {currentText && (
-                <p className="whitespace-pre-line text-left font-medium text-gray-800">
-                  {currentText}
-                </p>
+            <div className="text-gray-700 leading-relaxed text-left">
+              {/* Render all text as a single continuous flow */}
+              <p className="whitespace-pre-line text-left">
+                {displayedText}
+                {currentText}
+              </p>
+              {/* Show click to continue prompt */}
+              {waitingForClick && (
+                <div className="text-center mt-4">
+                  <p className="text-gray-500 text-sm italic">点击空白处继续...</p>
+                </div>
               )}
             </div>
           </div>
