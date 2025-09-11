@@ -16,6 +16,8 @@ import GameStat from './components/GameStat';
 import StartScreen from '../components/StartScreen';
 import LevelSelection from '../components/levels/LevelSelection';
 import Level1Scene from '../components/levels/level1/Level1Scene';
+import GameMainMenu from '../components/menu/GameMainMenu';
+import CollectionPage from '../components/collection/CollectionPage';
 import { processPlayerAction } from './components/ActionProcessor';
 
 const MuseumPortalGame = () => {
@@ -30,7 +32,7 @@ const MuseumPortalGame = () => {
   });
   const [actionHistory, setActionHistory] = useState([]);
   
-  // 游戏状态：'start' | 'level_selection' | 'playing' | 'ending'
+  // 游戏状态：'start' | 'main_menu' | 'level_selection' | 'playing' | 'ending' | 'collection'
   const [gameStatePhase, setGameStatePhase] = useState('start');
   
   const getMoodText = (mood) => {
@@ -70,7 +72,22 @@ const MuseumPortalGame = () => {
 
   // 游戏开始界面
   if (gameStatePhase === 'start') {
-    return <StartScreen onStart={() => setGameStatePhase('level_selection')} />;
+    return <StartScreen onStart={() => setGameStatePhase('main_menu')} />;
+  }
+
+  // 主菜单界面
+  if (gameStatePhase === 'main_menu') {
+    return (
+      <GameMainMenu 
+        onSelectAdventure={() => setGameStatePhase('level_selection')}
+        onSelectCollection={() => setGameStatePhase('collection')}
+      />
+    );
+  }
+
+  // 馆藏收集界面
+  if (gameStatePhase === 'collection') {
+    return <CollectionPage onBack={() => setGameStatePhase('main_menu')} />;
   }
   
   // 关卡选择界面
