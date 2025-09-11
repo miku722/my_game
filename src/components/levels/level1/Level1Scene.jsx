@@ -1,24 +1,21 @@
-import { useState, useEffect } from 'react';
+import LevelTemplate from '../LevelTemplate';
 
-const Level1Scene = () => {
-  // Complete text that has been fully typed and displayed
-  const [displayedText, setDisplayedText] = useState('');
-  // Current text that is being typed (shown as if being typed)
-  const [currentText, setCurrentText] = useState('');
-  // Flag to track if we're waiting for user click
-  const [waitingForClick, setWaitingForClick] = useState(false);
-  // Current paragraph index
-  const [currentParagraphIndex, setCurrentParagraphIndex] = useState(0);
-  // Current step index (0 for first group of paragraphs)
-
-  // Current index in the flattened paragraphs array
-  const [currentParagraphFlatIndex, setCurrentParagraphFlatIndex] = useState(0);
-  
+// This component receives all necessary state and functions from MuseumPortalGame
+const Level1Scene = ({
+  sceneDescriptionParagraphs,
+  onComplete,
+  gameState,
+  updateGameState,
+  playerState,
+  setPlayerState,
+  setActionHistory,
+  recruitAlly
+}) => {
   // Level 1 scene descriptions split into paragraphs
-  const sceneDescriptionParagraphs = [
+  const level1Paragraphs = [
     [
-      // Step 1 paragraphs
-      "清晨的博物馆空无一人，窗外的晨光透过高大的落地窗洒在石质地面上，映出一条条拉长的影子。空气里弥漫着一种微妙的紧张感——你一踏入展厅，就察觉到异常。几个展柜的文物不翼而飞，原本静静陈列的青铜器、玉器和古籍，如今只剩下空荡荡的玻璃柜和微微发光的底座。",
+      // Step1 paragraphs
+      "凌晨的博物馆空无一人，窗外的月光透过高大的落地窗洒在石质地面上，映出一条条拉长的影子。空气里弥漫着一种微妙的紧张感——你一踏入展厅，就察觉到异常。几个展柜的文物不翼而飞，原本静静陈列的青铜器、玉器和古籍，如今只剩下空荡荡的玻璃柜和微微发光的底座。",
       "你深吸一口气，感受到肩头的责任：身为博物馆管理员，这些珍贵的历史遗产安全与否，直接与你的职业荣誉与使命紧密相连。每一件失踪的文物，都是历史的碎片，而你必须找到它们，揭开这场异常背后的谜团。",
       "脚步轻轻踏在光滑的地砖上，回声在空旷的展厅里回荡。你环顾四周，注意到每个展柜旁都留有微微的灰尘痕迹，仿佛文物刚刚离开时的痕迹；空气里带着一丝奇异的凉意，让人不寒而栗。"
     ],
@@ -29,87 +26,80 @@ const Level1Scene = () => {
       "你的心跳骤然加快，思绪翻涌——不仅是为了文物的安全，更为了揭开这场魔法般的谜团。你感到整个展厅似乎开始轻微回应你的存在，一条不可见的力量在指引着你前行。你知道，这只是冒险的开端，而真正的奇迹与谜团，正潜伏在展厅深处，等待你的探索。"
     ],
     [
-      // Step 4 paragraphs
+      // Step 3 paragraphs
       "你紧握手中的青铜钥匙，掌心传来的微光让你感到一种神秘力量在流动。展厅的灯光微微闪烁，空气中弥漫着淡淡的魔法香气和古老灰尘的味道。",
       "角落的阴影中，一条平时难以察觉的通道缓缓浮现，石壁上的古老符文闪烁着幽蓝色光芒，仿佛在低声吟唱，指引你前行。",
       "微风从通道深处吹来，卷起地面上落下的灰尘，带着低沉的回响。你感到胸口的悸动与紧张交织，意识到真正的冒险旅程即将开始。"
     ]
   ];
-    // All paragraphs flattened into a single array for sequential processing
-  const allParagraphs = sceneDescriptionParagraphs.flat();
-  
-  // Current paragraph index within the current step
-  const [paragraphIndex, setParagraphIndex] = useState(0);
-  
-  // Simple typewriter effect for scene descriptions
-  useEffect(() => {
-    // Get the current paragraph from the flattened array
-    const currentParagraph = allParagraphs[currentParagraphFlatIndex];
-    
-    let index = 0;
-    setCurrentText('');
-    
-    const typeWriter = setInterval(() => {
-      if (index < currentParagraph.length) {
-        setCurrentText(currentParagraph.slice(0, index + 1));
-        index++;
-      } else {
-        clearInterval(typeWriter);
-        // Set flag to wait for user click
-        setWaitingForClick(true);
-      }
-    }, 40);
-    
-    return () => clearInterval(typeWriter);
-  }, [currentParagraphFlatIndex]);
 
-  // Handle click to continue to next paragraph
-  const handleContinue = () => {
-    if (waitingForClick) {
-      setWaitingForClick(false);
-      
-      // Add the current paragraph to the displayed text
-      setDisplayedText(prev => prev + allParagraphs[currentParagraphFlatIndex] + '\n\n');
-      
-      // Move to next paragraph in the flattened array
-      if (currentParagraphFlatIndex < allParagraphs.length - 1) {
-        setCurrentParagraphFlatIndex(prev => prev + 1);
-      } else {
-        // All paragraphs completed
-        setCurrentText('');
-      }
-    }
+  const handleComplete = () => {
+    // Create custom modal for completion
+    const modal = document.createElement('div');
+    modal.style.position = 'fixed';
+    modal.style.top = '0';
+    modal.style.left = '0';
+    modal.style.width = '100%';
+    modal.style.height = '100%';
+    modal.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+    modal.style.display = 'flex';
+    modal.style.justifyContent = 'center';
+    modal.style.alignItems = 'center';
+    modal.style.zIndex = '1000';
+    
+    const modalContent = document.createElement('div');
+    modalContent.style.backgroundColor = 'white';
+    modalContent.style.padding = '20px';
+    modalContent.style.borderRadius = '8px';
+    modalContent.style.textAlign = 'center';
+    
+    const message = document.createElement('p');
+    message.textContent = '恭喜你，顺利通关！';
+    message.style.fontSize = '18px';
+    message.style.marginBottom = '20px';
+    
+    const button = document.createElement('button');
+    button.textContent = '返回关卡选择';
+    button.style.padding = '10px 20px';
+    button.style.backgroundColor = '#3B82F6';
+    button.style.color = 'white';
+    button.style.border = 'none';
+    button.style.borderRadius = '4px';
+    button.style.cursor = 'pointer';
+    
+    button.onclick = () => {
+      // Update game state to mark level as completed and unlock next level
+      updateGameState(prev => ({
+        ...prev,
+        levelProgress: {
+          ...prev.levelProgress,
+          level1: true,
+          level2: true // Unlock next level
+        }
+      }));
+      // Remove modal
+      document.body.removeChild(modal);
+      // Navigate back to level selection
+      if (onComplete) onComplete();
+    };
+    
+    modalContent.appendChild(message);
+    modalContent.appendChild(button);
+    modal.appendChild(modalContent);
+    document.body.appendChild(modal);
   };
 
   return (
-    <div 
-      className="flex flex-col h-screen bg-gradient-to-br from-blue-100 to-purple-100"
-      onClick={handleContinue}
-      style={{ cursor: waitingForClick ? 'pointer' : 'default' }}
-    >
-      <div className="bg-white rounded-t-lg shadow-lg p-8 flex-grow">
-        {/* Scene Content */}
-        <div className="mb-8">
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">馆内启程</h2>
-          
-          <div className="bg-amber-50 border border-amber-200 rounded-lg p-6 mb-6 flex-grow overflow-y-auto custom-scrollbar">
-            <div className="text-gray-700 leading-relaxed text-left">
-              {/* Render all text as a single continuous flow */}
-              <p className="whitespace-pre-line text-left">
-                {displayedText}
-                {currentText}
-              </p>
-              {/* Show click to continue prompt */}
-              {waitingForClick && (
-                <div className="text-center mt-4">
-                  <p className="text-gray-500 text-sm italic">点击空白处继续...</p>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+    <LevelTemplate
+      sceneDescriptionParagraphs={level1Paragraphs}
+      onComplete={handleComplete}
+      gameState={gameState}
+      updateGameState={updateGameState}
+      playerState={playerState}
+      setPlayerState={setPlayerState}
+      setActionHistory={setActionHistory}
+      recruitAlly={recruitAlly}
+    />
   );
 };
 

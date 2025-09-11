@@ -163,7 +163,15 @@ const MuseumPortalGame = () => {
   // 如果当前有活动关卡，显示关卡内容
   if (gameState.currentLevel) {
     if (gameState.currentLevel === 1) {
-      return <Level1Scene />;
+      return <Level1Scene 
+        onComplete={() => setGameStatePhase('ending')}
+        gameState={gameState}
+        updateGameState={updateGameState}
+        playerState={playerState}
+        setPlayerState={setPlayerState}
+        setActionHistory={setActionHistory}
+        recruitAlly={recruitAlly}
+      />;
     }
     // 可以在这里添加更多关卡的条件
     // } else if (gameState.currentLevel === 2) {

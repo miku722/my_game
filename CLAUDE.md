@@ -20,6 +20,9 @@ npm run build
 
 # Run linting
 npm run lint
+
+# Start development server on remote (for mobile testing)
+npm run dev:remote
 ```
 
 ## Project Architecture
@@ -31,20 +34,19 @@ This is a React/Vite application with a museum-themed adventure game where playe
 - **Game Flow**: Player starts in museum -> discovers portal -> interacts with artifact avatars -> recruits allies -> faces challenges -> reaches ending
 - **AI Integration**: Uses Qwen API service to process player actions and generate narrative responses in JSON format
 - **State Management**: Custom hook `useGameState` manages game state with useState and useCallback
+- **Component Structure**: The application follows a modular component architecture with clear separation between game logic, UI components, and data
 
-### Component Structure
-- `MuseumPortalGame`: Main game component that orchestrates the game experience
-- `StatusBar`: Displays player status (mood, danger level, etc.)
-- `CurrentScene`: Shows current location description and context
-- `AlliesList`: Displays recruited artifact avatars
-- `ActionHistory`: Shows previous player actions and results
-- `ActionInput`: Handles player input for actions
-- `CollectionsInfo`: Displays information about available artifact avatars
-- `Experiences`: Shows player's growth and insights gained
+### Component Hierarchy and Relationships
+- `App`: Root component that renders the `MuseumPortalGame`
+- `MuseumPortalGame`: Main game orchestrator that manages game phases (start, level_selection, playing, ending)
+- `useGameState`: Central state management hook that maintains game state and provides state update functions
+- `LevelTemplate`: Reusable template for level scenes with typewriter effect and action interface
+- `Level*Scene`: Level-specific components that provide content to the LevelTemplate
+- `ActionProcessor`: Handles player actions by generating prompts and processing AI responses
 
-## Key Data Structures
+### Key Data Structures
 
-### Game State (managed by useGameState)
+#### Game State (managed by useGameState)
 - `currentLocation`: Current game scene (museum, portal_discovery, ancient_court, void_market, ending)
 - `playerMood`: Player's emotional state (1-5 scale)
 - `companionsFound`: Number of recruited artifact avatars
@@ -53,6 +55,10 @@ This is a React/Vite application with a museum-themed adventure game where playe
 - `inventory`: Player's collected items
 - `allies`: Array of names of recruited artifact avatars
 - `dangerLevel`: Current danger level (1-5 scale)
+- `currentLevel`: Current level number (1, 2, etc.)
+- `currentStep`: Current step within a level
+- `levelProgress`: Object tracking completion status of levels
+- `levelX_flags`: Flag objects for tracking progress within specific levels
 
 ### Data Modules
 - `@data/collections`: Artifact avatars (翠娘, 秦烈, 骏影, 墨笙) with their personalities, abilities, and descriptions
@@ -60,9 +66,9 @@ This is a React/Vite application with a museum-themed adventure game where playe
 - `@data/villains`: Antagonists (凤冠魔姬, 无名) with backstories and characteristics
 - `@data/player`: Player character (小张) with initial attributes
 
-## AI Service Integration
+### AI Service Integration
 
-### QwenAPI Service
+#### QwenAPI Service
 - Located at `src/services/QwenAPI.js`
 - Uses environment variables for configuration:
   - `VITE_QWEN_API_URL`: API endpoint
@@ -71,7 +77,7 @@ This is a React/Vite application with a museum-themed adventure game where playe
 - Sends player actions as prompts to the AI with comprehensive game state context
 - Expects JSON responses with structured game state updates
 
-### AI Prompt Structure
+#### AI Prompt Structure
 The prompt sent to the AI includes:
 - Current game state (location, danger level, player mood, allies, inventory)
 - Descriptions of available artifact avatars
@@ -79,7 +85,41 @@ The prompt sent to the AI includes:
 - Game rules for the AI to follow
 - Required JSON response format with fields like `feasible`, `result`, `moodChange`, `experienceGained`, `allyRecruited`, etc.
 
-## Environment Configuration
+#### Action Processing Workflow
+1. Player submits action through `ActionInput` component
+2. `processPlayerAction` in `ActionProcessor.jsx` generates a prompt using `generatePrompt`
+3. The prompt is sent to the Qwen API via `qwenAPI.sendMessage`
+4. The AI response is parsed and used to update game state
+5. Game state updates trigger UI changes and progress tracking
+
+### Level System Architecture
+
+#### Level Template Pattern
+The game uses a reusable template pattern for levels:
+- `LevelTemplate.jsx`: Generic component handling typewriter effects, navigation, and action interface
+- Level-specific components (e.g., `Level1Scene.jsx`): Provide content to the template while reusing common functionality
+
+#### Level Flow
+1. Intra-step navigation: After each paragraph within a step, show "点击空白处继续..." and wait for click
+2. Inter-step actions: After completing all paragraphs in a step, show action interface with "该你行动了"
+3. Action submission: When action is submitted, show "让我来看看这样是否可行？" during API processing
+4. Text persistence: All previously displayed text is preserved throughout the game progression
+
+### Development Best Practices
+
+#### UI Design Requirements
+- All new UI elements must follow the project's existing UI style and code conventions
+- The project uses React + Tailwind CSS with a clean, card-based design with rounded corners and soft shadows
+- Reuse existing component styles (e.g., `StatusBar`, `Card`, `ActionHistory`) for consistency in fonts, colors, and spacing
+- All UI changes must appear as if they belong in the original game, without jarring visual differences
+
+#### Code Design Principles
+- Follow single responsibility principle and encapsulation
+- Prefer editing existing files over creating new ones
+- When creating new components, follow existing patterns in naming, structure, and implementation
+- Maintain consistent code style with existing codebase
+
+#### Environment Configuration
 - Copy `.env.example` to `.env.local` and modify as needed
 - Key environment variables:
   - `VITE_QWEN_API_URL`: Qwen API endpoint
@@ -87,29 +127,3 @@ The prompt sent to the AI includes:
   - `VITE_QWEN_API_KEY`: API key for authentication
   - `VITE_GAME_VERSION`: Game version
   - `VITE_DEBUG_MODE`: Debug mode toggle
-
-## Styling
-- Uses Tailwind CSS for styling
-- Main styles in `src/styles/tailwind.css`
-- Component-specific styles in `src/styles/components.css`
-- Global styles in `src/styles/globals.css`
-
-## Key Dependencies
-- React 18.2
-- Vite 4.4
-- Tailwind CSS 3.3
-- lucide-react for icons
-- clsx for conditional class names
-
-## Limitations
-  UI 设计要求：
-- 所有新增 UI 元素（例如血条、SAN 值、体力条、宝箱奖励提示、文物收集展示、关卡进度等），必须完全继承本项目原有的 UI 风格和代码规范。
-- 本项目的前端使用 React + Tailwind CSS，整体风格简洁、卡片式、圆角和柔和阴影。
-- 新增的组件或进度条请复用已有组件的样式（例如 `StatusBar`、`Card`、`ActionHistory`），保持一致的字体、颜色和间距。
-- 禁止引入和原有项目不一致的外观（例如不统一的配色、陌生的 UI 库、不同风格的动画）。
-- 所有 UI 改动必须“看起来像是原本游戏里就有的”，无突兀感。
-
-  UI 要求：请严格遵守上面的 UI 风格约束说明。
-
-  代码设计要求：
-    时刻要注意封装和单一职责的原则。
